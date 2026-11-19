@@ -1,0 +1,282 @@
+
+# ==========================================================
+# E-LEARN PLATFORM - GLOBAL GITIGNORE
+# Frontend: React + Vite + Node.js
+# Backend: Java + Spring Boot + Maven
+# OS: Windows, Linux, macOS
+# IDEs: IntelliJ IDEA, VS Code, Eclipse
+# ==========================================================
+
+
+# ==========================================================
+# 1. ENVIRONMENT VARIABLES AND SECRETS
+# ==========================================================
+
+.env
+.env.*
+!.env.example
+!.env.template
+
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+secrets/
+credentials/
+private/
+
+
+# ==========================================================
+# 2. FRONTEND - NODE.JS / REACT / VITE
+# ==========================================================
+
+# Dependencies
+client/node_modules/
+node_modules/
+
+# Build outputs
+client/dist/
+client/build/
+client/out/
+
+# Vite
+client/.vite/
+client/vite.config.*.timestamp-*
+
+# Testing and coverage
+client/coverage/
+client/.nyc_output/
+client/test-results/
+client/playwright-report/
+
+# Logs
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*
+client/pnpm-debug.log*
+client/*.log
+client/logs/
+
+# Package manager caches
+client/.npm/
+client/.yarn/cache/
+client/.pnpm-store/
+
+# Optional frontend caches
+client/.eslintcache
+client/.stylelintcache
+client/.parcel-cache/
+
+# TypeScript generated files
+client/*.tsbuildinfo
+
+
+# ==========================================================
+# 3. BACKEND - JAVA / SPRING BOOT / MAVEN
+# ==========================================================
+
+# Maven build output
+server/target/
+server/.mvn/wrapper/maven-wrapper.jar
+
+# Compiled Java files
+*.class
+*.jar
+*.war
+*.ear
+
+# JVM crash dumps
+hs_err_pid*
+replay_pid*
+
+# Spring Boot logs
+server/logs/
+server/*.log
+
+# Generated reports
+server/site/
+server/coverage/
+
+# Temporary files
+server/tmp/
+server/temp/
+
+
+# ==========================================================
+# 4. JAVA / MAVEN GENERAL
+# ==========================================================
+
+.mvn/timing.properties
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+
+# ==========================================================
+# 5. DATABASE FILES AND LOCAL DATA
+# ==========================================================
+
+*.db
+*.sqlite
+*.sqlite3
+*.mv.db
+*.trace.db
+
+# Local database storage
+database/data/
+db/data/
+data/
+
+# Database dumps and backups
+*.sql.bak
+*.dump
+*.bak
+*.backup
+
+
+# ==========================================================
+# 6. IDE CONFIGURATION
+# ==========================================================
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+
+
+# ==========================================================
+# 7. OPERATING SYSTEM FILES
+# ==========================================================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+
+
+# ==========================================================
+# 8. TEMPORARY FILES
+# ==========================================================
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.old
+*.orig
+*.rej
+*.cache
+
+# Editor backups
+*~
+*.sublime-workspace
+
+
+# ==========================================================
+# 9. TESTING / AUTOMATION
+# ==========================================================
+
+.playwright/
+.cypress/
+cypress/videos/
+cypress/screenshots/
+
+# Jest
+coverage/
+
+# Selenium
+geckodriver.log
+chromedriver.log
+
+
+# ==========================================================
+# 10. GENERATED ASSETS AND UPLOADS
+# ==========================================================
+
+# User-generated uploads (keep directories if needed)
+server/uploads/*
+!server/uploads/.gitkeep
+
+server/storage/*
+!server/storage/.gitkeep
+
+# Generated media
+*.log
+*.temp
+
+
+# ==========================================================
+# 11. DOCKER / LOCAL DEVELOPMENT OVERRIDES
+# ==========================================================
+
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+docker-compose.override.yml
+
+
+# ==========================================================
+# 12. SECURITY AND CERTIFICATES
+# ==========================================================
+
+*.crt
+*.cer
+*.der
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+
+# ==========================================================
+# 13. GENERAL GENERATED FILES
+# ==========================================================
+
+*.generated.*
+*.min.js.map
+*.min.css.map
