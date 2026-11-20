@@ -14,8 +14,8 @@ A modern e-learning platform for **students, instructors and administrators**: a
 
 ```text
 elearning-portal/
-├── frontend/      React + Vite app (see Architecture below)
-├── backend/       Spring Boot API (use your own folder name, e.g. server/)
+├── client/      React + Vite app (see Architecture below)
+├── server/       Spring Boot API (use your own folder name, e.g. server/)
 ├── docker-compose.yml
 └── README.md
 ```
@@ -26,7 +26,7 @@ You can explore the whole UI without the API. It falls back to an offline demo r
 
 ```bash
 git clone <repository-url>
-cd elearning-portal/frontend
+cd elearning-portal/client
 npm install
 npm run dev        # development server
 npm run build      # production build
@@ -51,7 +51,7 @@ Every data view has loading skeletons, empty states and error states with retry.
 The front end follows the four layers from the design brief:
 
 ```text
-frontend/src
+client/src
 ├── presentation/     React components, pages, layouts (what the user sees)
 ├── application/      auth, toasts, hooks: use cases that coordinate the UI
 ├── domain/           pure rules: pricing, filtering, progress, streaks, validation
@@ -66,13 +66,13 @@ The back end mirrors this: `controller` (HTTP) → `service` (use cases) → `mo
 
 ```bash
 docker compose up -d mysql          # 1. database
-cd backend && mvn spring-boot:run   # 2. API on :8080 (seeds demo data on first start)
-cd frontend && npm install && npm run dev   # 3. UI on :5173
+cd server && mvn spring-boot:run   # 2. API on :8080 (seeds demo data on first start)
+cd server && npm install && npm run dev   # 3. UI on :5173
 ```
 
 Demo accounts (password `Password123!`): `student@coursely.dev`, `instructor@coursely.dev`, `admin@coursely.dev` (admin), `pending@coursely.dev` (instructor awaiting approval). Seeding is controlled by `COURSELY_SEED` (set `false` outside local development).
 
-Tests: `cd backend && mvn test` (MockMvc against in-memory H2).
+Tests: `cd server && mvn test` (MockMvc against in-memory H2).
 
 ## API
 
