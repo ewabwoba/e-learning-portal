@@ -1,2 +1,3 @@
 package com.coursely.model;
-public enum Role { STUDENT, INSTRUCTOR }
+
+public enum Role { STUDENT, INSTRUCTOR, ADMIN }

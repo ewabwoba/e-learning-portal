@@ -24,6 +24,8 @@ public class Course {
     /** Students already counted before this system (seed data); live enrolments are added on top. */
     @Column(nullable = false) private int studentsBase = 0;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20) private CourseStatus status = CourseStatus.DRAFT;
+    /** Why an admin rejected or took down the course. Shown to the instructor. */
+    @Column(length = 500) private String rejectionReason;
     @ManyToOne(optional = false, fetch = FetchType.LAZY) @JoinColumn(name = "instructor_id") private User instructor;
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true) @OrderBy("position ASC")
     private List<CourseModule> modules = new ArrayList<>();
@@ -45,6 +47,7 @@ public class Course {
     public int getRatingCount() { return ratingCount; } public void setRatingCount(int v) { ratingCount = v; }
     public int getStudentsBase() { return studentsBase; } public void setStudentsBase(int v) { studentsBase = v; }
     public CourseStatus getStatus() { return status; } public void setStatus(CourseStatus v) { status = v; }
+    public String getRejectionReason() { return rejectionReason; } public void setRejectionReason(String v) { rejectionReason = v; }
     public User getInstructor() { return instructor; }
     public List<CourseModule> getModules() { return modules; }
     public Instant getCreatedAt() { return createdAt; } public void setCreatedAt(Instant v) { createdAt = v; }
