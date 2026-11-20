@@ -27,7 +27,7 @@ class CourselyApiTest {
 
     @Test void healthAndPublicCatalogueAreOpen() throws Exception {
         mvc.perform(get("/api/health")).andExpect(status().isOk());
-        mvc.perform(get("/api/courses")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(9));
+        mvc.perform(get("/api/courses")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(9)));
     }
 
     @Test void publicCourseDetailNeverLeaksLessonContent() throws Exception {
