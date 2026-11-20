@@ -2,6 +2,8 @@ package com.coursely.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,6 +18,17 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     ResponseEntity<Map<String, Object>> status(ResponseStatusException e) {
         return ResponseEntity.status(e.getStatusCode()).body(Map.of("status", e.getStatusCode().value(), "message", e.getReason() == null ? "Request failed." : e.getReason()));
+    }
+
+    /** Thrown by @PreAuthorize checks. Without this the catch-all below would turn a permission failure into a 500. */
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<Map<String, Object>> denied(AccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("status", 403, "message", "You do not have access to this area."));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    ResponseEntity<Map<String, Object>> unauthenticated(AuthenticationException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("status", 401, "message", "Please sign in to continue."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

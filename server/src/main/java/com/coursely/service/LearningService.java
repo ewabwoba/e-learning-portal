@@ -55,7 +55,7 @@ public class LearningService {
     public CourseView learn(User me, Long courseId) {
         Course c = courses.findById(courseId).orElseThrow(LearningService::notFound);
         Optional<Enrollment> e = enrollments.findByStudentIdAndCourseId(me.getId(), courseId);
-        boolean owner = c.getInstructor().getId().equals(me.getId());
+        boolean owner = c.getInstructor().getId().equals(me.getId()) || me.getRole() == Role.ADMIN; // owners and admins may preview
         if (e.isEmpty() && !owner) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Enroll in this course to start learning.");
         Set<Long> done = e.map(x -> progress.findByEnrollment(x.getId()).stream().map(p -> p.getLesson().getId()).collect(Collectors.toSet())).orElse(Set.of());
         return mapper.learnerDetail(c, done, e.isEmpty());

@@ -24,5 +24,10 @@ coursely:
     # Development-only default. Set JWT_SECRET (32+ random characters) in every real environment.
     secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
     ttl-minutes: ${JWT_TTL_MINUTES:120}
+  admin:
+    # Creates the first admin on startup if none exists. Leave empty to skip. Password must be 12+ characters.
+    email: ${COURSELY_ADMIN_EMAIL:}
+    password: ${COURSELY_ADMIN_PASSWORD:}
+    name: ${COURSELY_ADMIN_NAME:Platform Admin}
   seed:
     enabled: ${COURSELY_SEED:true}   # demo data + demo accounts; set false outside local development

@@ -18,15 +18,19 @@ public class InstructorService {
     private final EnrollmentRepository enrollments;
     private final LessonProgressRepository progress;
     private final UserRepository users;
+    private final CategoryRepository categories;
+    private final AuditService audit;
     private final CourseMapper mapper;
 
-    public InstructorService(CourseRepository courses, EnrollmentRepository enrollments, LessonProgressRepository progress, UserRepository users, CourseMapper mapper) {
-        this.courses = courses; this.enrollments = enrollments; this.progress = progress; this.users = users; this.mapper = mapper;
+    public InstructorService(CourseRepository courses, EnrollmentRepository enrollments, LessonProgressRepository progress, UserRepository users,
+                             CategoryRepository categories, AuditService audit, CourseMapper mapper) {
+        this.courses = courses; this.enrollments = enrollments; this.progress = progress; this.users = users;
+        this.categories = categories; this.audit = audit; this.mapper = mapper;
     }
 
-    /** Loads a course and enforces ownership. Other instructors' courses look like they do not exist. */
-    private Course owned(User me, Long id) {
-        return courses.findById(id).filter(c -> c.getInstructor().getId().equals(me.getId()))
+    /** Loads a course and enforces ownership (admins may open any course). Other instructors' courses look like they do not exist. */
+    Course owned(User me, Long id) {
+        return courses.findById(id).filter(c -> me.getRole() == Role.ADMIN || c.getInstructor().getId().equals(me.getId()))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "We could not find that course."));
     }
 
@@ -43,10 +47,14 @@ public class InstructorService {
         else c = owned(me, id);
         if (r.originalPrice() != null && r.originalPrice().compareTo(r.price()) < 0)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Original price must be higher than the sale price.");
-        c.setTitle(r.title().trim()); c.setCategory(r.category()); c.setLevel(r.level()); c.setDescription(r.description().trim());
+        Category cat = categories.findByNameIgnoreCase(r.category().trim())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose one of the available categories."));
+        c.setTitle(r.title().trim()); c.setCategory(cat.getName()); c.setLevel(r.level()); c.setDescription(r.description().trim());
         c.setPrice(r.price()); c.setOriginalPrice(r.originalPrice()); c.setImageUrl(r.imageUrl() == null ? "" : r.imageUrl().trim());
         applyCurriculum(c, r.modules() == null ? List.of() : r.modules());
-        return mapper.editorDetail(courses.save(c));
+        Course saved = courses.save(c);
+        if (me.getRole() == Role.ADMIN) audit.log(me, "COURSE_EDITED", "COURSE", saved.getId(), "Edited by admin: " + saved.getTitle());
+        return mapper.editorDetail(saved);
     }
 
     /** Diff by id: known ids are updated in place, unknown/new rows are created, omitted rows are removed (with their progress). */
@@ -79,15 +87,38 @@ public class InstructorService {
         c.getModules().clear(); c.getModules().addAll(result);
     }
 
+    /**
+     * Instructor-driven lifecycle. Instructors never publish directly: they submit for review and an admin approves.
+     *   DRAFT / REJECTED -> PENDING_REVIEW (needs an approved instructor account and at least one lesson)
+     *   PENDING_REVIEW / ARCHIVED -> DRAFT   (withdraw / restore)
+     *   DRAFT / REJECTED / PUBLISHED -> ARCHIVED
+     */
     @Transactional
     public CourseView setStatus(User me, Long id, String status) {
         Course c = owned(me, id);
-        CourseStatus s;
-        try { s = CourseStatus.valueOf(status.toUpperCase()); } catch (IllegalArgumentException e) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status must be DRAFT or PUBLISHED."); }
-        if (s == CourseStatus.PUBLISHED && c.getModules().stream().mapToInt(m -> m.getLessons().size()).sum() == 0)
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Add at least one lesson before publishing.");
-        c.setStatus(s);
+        CourseStatus to;
+        try { to = CourseStatus.valueOf(status.toUpperCase()); } catch (IllegalArgumentException e) { throw bad("Unknown status."); }
+        CourseStatus from = c.getStatus();
+        switch (to) {
+            case PENDING_REVIEW -> {
+                if (from != CourseStatus.DRAFT && from != CourseStatus.REJECTED) throw conflict(from);
+                if (me.getApproval() != ApprovalStatus.APPROVED)
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your instructor account is awaiting approval. You can keep drafting, but you cannot submit courses yet.");
+                if (c.getModules().stream().mapToInt(m -> m.getLessons().size()).sum() == 0)
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Add at least one lesson before submitting for review.");
+                c.setRejectionReason(null);
+            }
+            case DRAFT -> { if (from != CourseStatus.PENDING_REVIEW && from != CourseStatus.ARCHIVED) throw conflict(from); }
+            case ARCHIVED -> { if (from != CourseStatus.DRAFT && from != CourseStatus.REJECTED && from != CourseStatus.PUBLISHED) throw conflict(from); }
+            default -> throw bad("Instructors cannot set that status. Submit the course for review instead.");
+        }
+        c.setStatus(to);
         return mapper.summary(c);
+    }
+
+    private static ResponseStatusException bad(String m) { return new ResponseStatusException(HttpStatus.BAD_REQUEST, m); }
+    private static ResponseStatusException conflict(CourseStatus from) {
+        return new ResponseStatusException(HttpStatus.CONFLICT, "That change is not available while the course is " + from.name().toLowerCase().replace('_', ' ') + ".");
     }
 
     public List<StudentRow> students(User me) {

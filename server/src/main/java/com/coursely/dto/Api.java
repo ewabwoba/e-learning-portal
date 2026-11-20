@@ -27,7 +27,7 @@ public final class Api {
                                 @Size(max = 500) String imageUrl, @Valid List<ModuleRequest> modules) {}
 
     // ---- responses ----
-    public record UserView(Long id, String name, String email, String role, String headline) {}
+    public record UserView(Long id, String name, String email, String role, String headline, String status, String approval, String approvalNote) {}
     public record AuthResponse(String token, UserView user) {}
     public record InstructorView(Long id, String name, String headline) {}
 
@@ -38,7 +38,7 @@ public final class Api {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CourseView(Long id, String title, String category, String level, String description, BigDecimal price,
                              BigDecimal originalPrice, String imageUrl, String badge, double rating, int ratingCount, long students,
-                             String status, Instant createdAt, int durationMinutes, int lessonCount, InstructorView instructor,
+                             String status, Instant createdAt, int durationMinutes, int lessonCount, InstructorView instructor, String rejectionReason,
                              BigDecimal revenue, List<ModuleView> modules, Integer progressPercent, Integer completedLessons,
                              Integer totalLessons, Boolean preview) {}
 
@@ -51,4 +51,26 @@ public final class Api {
     public record InstructorStats(int courses, int published, long students, BigDecimal revenue, double averageRating, List<CourseSales> byCourse) {}
     public record StudentRow(Long enrollmentId, Long studentId, String name, String email, Long courseId, String courseTitle,
                              int progressPercent, Instant enrolledAt) {}
+
+    // ---- admin requests ----
+    public record CreateUserRequest(@NotBlank @Size(max = 120) String name, @NotBlank @Email @Size(max = 190) String email,
+                                    @NotBlank @Size(min = 8, max = 100) String password, @NotBlank String role) {}
+    public record UpdateUserRequest(@NotBlank @Size(max = 120) String name, @Size(max = 120) String headline) {}
+    public record RoleRequest(@NotBlank String role) {}
+    public record UserStatusRequest(@NotBlank String status) {}
+    public record DecisionRequest(@NotBlank String decision, @Size(max = 500) String reason) {}
+    public record BadgeRequest(String badge) {}
+    public record CategoryRequest(@NotBlank @Size(max = 80) String name) {}
+    public record AdminEnrollRequest(@NotNull Long studentId, @NotNull Long courseId) {}
+
+    // ---- admin responses ----
+    public record AdminUserView(Long id, String name, String email, String role, String headline, String status, String approval,
+                                String approvalNote, Instant createdAt, long courses, long enrollments) {}
+    public record CategoryView(Long id, String name, long courses) {}
+    public record AdminEnrollmentView(Long id, Long studentId, String studentName, String studentEmail, Long courseId, String courseTitle,
+                                      int progressPercent, Instant enrolledAt) {}
+    public record AuditView(Long id, String actor, String action, String targetType, Long targetId, String details, Instant createdAt) {}
+    public record PlatformReport(long users, long students, long instructors, long admins, long pendingInstructors, long suspendedUsers,
+                                 long courses, long published, long pendingReview, long drafts, long rejected, long archived,
+                                 long enrollments, BigDecimal grossSales, long newUsers30d, List<CourseSales> topCourses) {}
 }

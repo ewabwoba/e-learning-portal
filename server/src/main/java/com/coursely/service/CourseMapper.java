@@ -48,6 +48,6 @@ public class CourseMapper {
         User i = c.getInstructor();
         return new CourseView(c.getId(), c.getTitle(), c.getCategory(), c.getLevel(), c.getDescription(), c.getPrice(), c.getOriginalPrice(),
             c.getImageUrl(), c.getBadge(), c.getRating(), c.getRatingCount(), students(c), c.getStatus().name(), c.getCreatedAt(), minutes, lessons,
-            new InstructorView(i.getId(), i.getName(), i.getHeadline()), revenue, modules, pct, done, total, preview);
+            new InstructorView(i.getId(), i.getName(), i.getHeadline()), c.getRejectionReason(), revenue, modules, pct, done, total, preview);
     }
 }
