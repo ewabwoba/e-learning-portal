@@ -12,7 +12,11 @@ export const seedUsers = [
   { id: 12, name: 'Liam Kariuki', email: 'liam@example.com', role: 'STUDENT', headline: '' },
   { id: 13, name: 'Zawadi Achieng', email: 'zawadi@example.com', role: 'STUDENT', headline: '' },
   { id: 14, name: 'Noah Barasa', email: 'noah@example.com', role: 'STUDENT', headline: '' },
+  { id: 20, name: 'Platform Admin', email: 'admin@coursely.dev', role: 'ADMIN', headline: 'Coursely team' },
+  { id: 21, name: 'Nia Kamau', email: 'pending@coursely.dev', role: 'INSTRUCTOR', headline: 'Marketing strategist', approval: 'PENDING' },
 ];
+
+export const seedCategories = ['Art & Design', 'Development', 'Business', 'Marketing', 'Data Science', 'Photography', 'Music', 'Communication'];
 
 const curriculum = (titles) => titles.map(([title, lessons], mi) => ({
   id: 0, title,
@@ -51,7 +55,7 @@ export const seedCourses = base.map(([id, title, category, level, instructorId, 
 seedCourses.push({
   id: 10, title: 'Brand Storytelling for Creators', category: 'Marketing', level: 'Intermediate', instructorId: 1, price: 29, originalPrice: null,
   badge: null, rating: 0, ratingCount: 0, students: 0, description: 'Shape a brand voice and tell stories that people remember and share.',
-  imageUrl: U('1522202176988-66273c2fd55f'), status: 'DRAFT', createdAt: new Date(Date.UTC(2026, 10, 15, 9)).toISOString(),
+  imageUrl: U('1522202176988-66273c2fd55f'), status: 'PENDING_REVIEW', createdAt: new Date(Date.UTC(2026, 10, 15, 9)).toISOString(),
   modules: [{ id: 1001, title: 'Finding your voice', lessons: [{ id: 10001, title: 'What makes a story stick', type: 'VIDEO', durationMinutes: 12, content: '' }] }],
 });
 

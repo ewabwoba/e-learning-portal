@@ -27,4 +27,30 @@ const instructor = {
   stats: () => http('/instructor/stats'),
 };
 
-export const apiRepository = { mode: 'api', auth, courses, learning, instructor };
+const categories = { list: () => http('/categories', { auth: false }) };
+const admin = {
+  report: () => http('/admin/report'),
+  audit: () => http('/admin/audit'),
+  users: () => http('/admin/users'),
+  createUser: (body) => http('/admin/users', { method: 'POST', body }),
+  updateUser: (id, body) => http(`/admin/users/${id}`, { method: 'PUT', body }),
+  setRole: (id, role) => http(`/admin/users/${id}/role`, { method: 'PATCH', body: { role } }),
+  setUserStatus: (id, status) => http(`/admin/users/${id}/status`, { method: 'PATCH', body: { status } }),
+  decideInstructor: (id, decision, reason) => http(`/admin/users/${id}/approval`, { method: 'PATCH', body: { decision, reason } }),
+  deleteUser: (id) => http(`/admin/users/${id}`, { method: 'DELETE' }),
+  courses: () => http('/admin/courses'),
+  course: (id) => http(`/admin/courses/${id}`),
+  saveCourse: (p) => http(`/admin/courses/${p.id}`, { method: 'PUT', body: p }),
+  reviewCourse: (id, decision, reason) => http(`/admin/courses/${id}/review`, { method: 'PATCH', body: { decision, reason } }),
+  setBadge: (id, badge) => http(`/admin/courses/${id}/badge`, { method: 'PATCH', body: { badge } }),
+  deleteCourse: (id) => http(`/admin/courses/${id}`, { method: 'DELETE' }),
+  categories: () => http('/admin/categories'),
+  createCategory: (name) => http('/admin/categories', { method: 'POST', body: { name } }),
+  renameCategory: (id, name) => http(`/admin/categories/${id}`, { method: 'PUT', body: { name } }),
+  deleteCategory: (id) => http(`/admin/categories/${id}`, { method: 'DELETE' }),
+  enrollments: () => http('/admin/enrollments'),
+  enroll: (studentId, courseId) => http('/admin/enrollments', { method: 'POST', body: { studentId, courseId } }),
+  cancelEnrollment: (id) => http(`/admin/enrollments/${id}`, { method: 'DELETE' }),
+};
+
+export const apiRepository = { mode: 'api', auth, courses, categories, learning, instructor, admin };
