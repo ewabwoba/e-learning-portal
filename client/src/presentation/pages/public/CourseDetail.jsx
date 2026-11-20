@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { courseStatus } from '../../../domain/access';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Award, BookOpen, ChevronRight, Clock3, FileText, Infinity as InfinityIcon, PlayCircle, Smartphone, Users, ArrowRight } from 'lucide-react';
 import { useRepo } from '../../../application/DataContext';
@@ -52,6 +53,7 @@ export default function CourseDetail({ inApp = false }) {
   let cta;
   if (enrolled) cta = <Link to={learnPath} className="btn btn-primary btn-lg btn-block">{enrolled.progressPercent ? 'Continue learning' : 'Start learning'} <ArrowRight size={17} aria-hidden /></Link>;
   else if (isOwner) cta = <Link to={`/app/teach/courses/${c.id}`} className="btn btn-primary btn-lg btn-block">Edit this course</Link>;
+  else if (user?.role === 'ADMIN') cta = <><Link to={`/app/admin/courses/${c.id}`} className="btn btn-primary btn-lg btn-block">Edit this course</Link><Link to={`/app/admin/courses${c.status === 'PENDING_REVIEW' ? '?status=PENDING_REVIEW' : ''}`} className="btn btn-outline btn-lg btn-block" style={{ marginTop: 10 }}>Back to admin</Link></>;
   else if (user?.role === 'INSTRUCTOR') cta = <p className="buy-note">You are signed in as an instructor. Use a student account to enrol in courses.</p>;
   else cta = (
     <button type="button" className="btn btn-primary btn-lg btn-block" onClick={enroll} disabled={busy}>
@@ -68,7 +70,7 @@ export default function CourseDetail({ inApp = false }) {
             <Link to={`${inApp ? '/app/explore' : '/courses'}?category=${encodeURIComponent(c.category)}`}>{c.category}</Link>
           </nav>
           <div className="detail-hero-copy">
-            <div className="chips">{c.badge && <span className={`badge badge-${c.badge}`}>{c.badge}</span>}<span className="pill">{c.level}</span>{c.status === 'DRAFT' && <span className="pill pill-orange">Draft preview</span>}</div>
+            <div className="chips">{c.badge && <span className={`badge badge-${c.badge}`}>{c.badge}</span>}<span className="pill">{c.level}</span>{c.status !== 'PUBLISHED' && <span className={`pill ${courseStatus(c.status).pill}`}>{courseStatus(c.status).label} · preview</span>}</div>
             <h1>{c.title}</h1>
             <p className="lead">{c.description}</p>
             <div className="detail-meta">
@@ -118,7 +120,7 @@ export default function CourseDetail({ inApp = false }) {
           <div className="buy-body">
             <div className="buy-price"><strong>{formatPrice(c.price)}</strong>{off > 0 && <><s>{formatPrice(c.originalPrice)}</s><span className="pill pill-green">{off}% off</span></>}</div>
             {cta}
-            {!enrolled && !isOwner && c.price > 0 && <p className="buy-note">Payments are not connected in this starter, so enrolment is instant.</p>}
+            {!enrolled && !isOwner && user?.role !== 'ADMIN' && c.price > 0 && <p className="buy-note">Payments are not connected in this starter, so enrolment is instant.</p>}
             <h3>This course includes</h3>
             <ul className="includes">
               <li><PlayCircle size={17} aria-hidden /> {formatDuration(stats.minutes)} of lessons</li>

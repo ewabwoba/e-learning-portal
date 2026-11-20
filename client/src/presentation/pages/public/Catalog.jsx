@@ -7,7 +7,8 @@ import { useSaved } from '../../../application/useSaved';
 import { useDocumentTitle } from '../../../application/useDocumentTitle';
 import CourseCard from '../../components/CourseCard';
 import { CardSkeletons, EmptyState, ErrorState } from '../../components/States';
-import { CATEGORIES, LEVELS, SORTS, applyCatalogFilters, activeFilterCount, emptyFilters } from '../../../domain/course';
+import { useCategories } from '../../../application/useCategories';
+import { LEVELS, SORTS, applyCatalogFilters, activeFilterCount, emptyFilters } from '../../../domain/course';
 
 const STATUS = [['FEATURED', 'Featured'], ['HOT', 'Hot'], ['NEW', 'New'], ['SPECIAL', 'Special']];
 const PRICES = [['', 'Any price'], ['free', 'Free'], ['under25', 'Under $25'], ['25to50', '$25 – $50'], ['over50', 'Over $50']];
@@ -54,6 +55,7 @@ function CheckGroup({ options, values, onChange, counts }) {
 
 /** Shared by the public site (/courses) and the signed-in app (/app/explore). */
 export default function Catalog({ basePath = '/courses', embedded = false }) {
+  const categories = useCategories();
   useDocumentTitle('Courses');
   const repo = useRepo();
   const [sp, setSp] = useSearchParams();
@@ -80,7 +82,7 @@ export default function Catalog({ basePath = '/courses', embedded = false }) {
 
   const filters = (
     <>
-      <Section title="Category"><CheckGroup options={CATEGORIES.map((c) => [c, c])} values={f.categories} counts={catCounts} onChange={(v) => update({ categories: v })} /></Section>
+      <Section title="Category"><CheckGroup options={categories.map((c) => [c, c])} values={f.categories} counts={catCounts} onChange={(v) => update({ categories: v })} /></Section>
       <Section title="Status"><CheckGroup options={STATUS} values={f.badges} onChange={(v) => update({ badges: v })} /></Section>
       <Section title="Level"><CheckGroup options={LEVELS.map((l) => [l, l])} values={f.levels} onChange={(v) => update({ levels: v })} /></Section>
       <Section title="Rating" defaultOpen={false}>

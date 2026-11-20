@@ -7,9 +7,10 @@ import { useAuth, homeFor } from '../../../application/AuthContext';
 import { useDocumentTitle } from '../../../application/useDocumentTitle';
 import CourseArt from '../../components/CourseArt';
 import CourseImage from '../../components/CourseImage';
-import { CATEGORY_META } from '../../components/categoryMeta';
+import { metaFor } from '../../components/categoryMeta';
+import { useCategories } from '../../../application/useCategories';
 import { Skeleton, ErrorState } from '../../components/States';
-import { CATEGORIES, formatCount, formatHours } from '../../../domain/course';
+import { formatCount, formatHours } from '../../../domain/course';
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=900&q=80';
 
@@ -68,13 +69,14 @@ const FAQ = [
 ];
 
 export default function Home() {
+  const categories = useCategories();
   useDocumentTitle('');
   const repo = useRepo();
   const { user, isAuthenticated } = useAuth();
   const { data: courses, error, loading, reload } = useAsync(() => repo.courses.list(), [repo]);
   const popular = (courses || []).slice().sort((a, b) => b.students - a.students).slice(0, 5);
   const counts = (courses || []).reduce((m, c) => ({ ...m, [c.category]: (m[c.category] || 0) + 1 }), {});
-  const cats = CATEGORIES.slice().sort((a, b) => (counts[b] || 0) - (counts[a] || 0)).slice(0, 6);
+  const cats = categories.slice().sort((a, b) => (counts[b] || 0) - (counts[a] || 0)).slice(0, 6);
 
   return (
     <>
@@ -131,7 +133,7 @@ export default function Home() {
           </div>
           <div className="cat-grid">
             {cats.map((c) => {
-              const { icon: Icon, bg, fg } = CATEGORY_META[c];
+              const { icon: Icon, bg, fg } = metaFor(c);
               return (
                 <Link key={c} to={`/courses?category=${encodeURIComponent(c)}`} className="cat-card">
                   <span className="cat-tile" style={{ background: bg, color: fg }}><Icon size={40} strokeWidth={1.6} aria-hidden /></span>

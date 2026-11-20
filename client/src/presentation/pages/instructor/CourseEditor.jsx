@@ -8,19 +8,23 @@ import { useDocumentTitle } from '../../../application/useDocumentTitle';
 import PageHeader from '../../components/PageHeader';
 import { Field } from '../../components/Field';
 import { ErrorState, Skeleton } from '../../components/States';
-import { CATEGORIES, LEVELS, validateCourseDraft, formatDuration, curriculumStats } from '../../../domain/course';
+import { useCategories } from '../../../application/useCategories';
+import { courseStatus } from '../../../domain/access';
+import { LEVELS, validateCourseDraft, formatDuration, curriculumStats } from '../../../domain/course';
 
 const blank = { title: '', category: '', level: 'Beginner', description: '', price: '', originalPrice: '', imageUrl: '', status: 'DRAFT', modules: [{ title: 'Introduction', lessons: [{ title: '', type: 'VIDEO', durationMinutes: 10, content: '' }] }] };
 const move = (arr, i, d) => { const j = i + d; if (j < 0 || j >= arr.length) return arr; const c = [...arr]; [c[i], c[j]] = [c[j], c[i]]; return c; };
 
-export default function CourseEditor() {
+export default function CourseEditor({ admin = false }) {
   const { id } = useParams();
   const isNew = !id;
   useDocumentTitle(isNew ? 'New course' : 'Edit course');
   const repo = useRepo();
   const nav = useNavigate();
   const toast = useToast();
-  const loaded = useAsync(() => (isNew ? Promise.resolve(blank) : repo.instructor.course(id)), [repo, id]);
+  const base = admin ? '/app/admin/courses' : '/app/teach/courses';
+  const categories = useCategories();
+  const loaded = useAsync(() => (isNew ? Promise.resolve(blank) : admin ? repo.admin.course(id) : repo.instructor.course(id)), [repo, id, admin]);
   const [draft, setDraft] = useState(null);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -41,25 +45,29 @@ export default function CourseEditor() {
     if (Object.keys(v).length) { toast.error('Please fix the highlighted fields.'); document.querySelector('[aria-invalid="true"]')?.focus(); return; }
     setSaving(true);
     try {
-      const saved = await repo.instructor.save(draft);
+      const saved = await (admin ? repo.admin.saveCourse(draft) : repo.instructor.save(draft));
       toast.success(isNew ? 'Course created as a draft.' : 'Changes saved.');
-      if (isNew) nav(`/app/teach/courses/${saved.id}`, { replace: true }); else { setDraft(structuredClone(saved)); }
+      if (isNew) nav(`${base}/${saved.id}`, { replace: true }); else { setDraft(structuredClone(saved)); }
     } catch (err) { toast.error(err.message); setErrors(err.fields || {}); } finally { setSaving(false); }
   };
 
   return (
     <form onSubmit={save} noValidate className="editor">
-      <Link to="/app/teach/courses" className="back-link"><ChevronLeft size={16} aria-hidden /> My courses</Link>
-      <PageHeader eyebrow={isNew ? 'New course' : draft.status === 'PUBLISHED' ? 'Published course' : 'Draft course'} title={isNew ? 'Create a course' : draft.title || 'Edit course'}
+      <Link to={admin ? '/app/admin/courses' : '/app/teach/courses'} className="back-link"><ChevronLeft size={16} aria-hidden /> {admin ? 'All courses' : 'My courses'}</Link>
+      <PageHeader eyebrow={isNew ? 'New course' : `${courseStatus(draft.status).label} course${admin ? ' · editing as admin' : ''}`} title={isNew ? 'Create a course' : draft.title || 'Edit course'}
         actions={<button className="btn btn-primary" disabled={saving}>{saving ? <><span className="spinner" aria-hidden /> Saving…</> : <><Save size={17} aria-hidden /> {isNew ? 'Create draft' : 'Save changes'}</>}</button>}>
         {isNew ? 'Start with the basics. You can add lessons now or later.' : 'Update your course details and curriculum.'}
       </PageHeader>
+
+      {draft.status === 'REJECTED' && draft.rejectionReason && <div className="notice bad" role="note"><b>Changes requested:</b> {draft.rejectionReason}</div>}
+      {draft.status === 'PENDING_REVIEW' && !admin && <div className="notice" role="note">This course is in review. Saving keeps it in the queue; withdraw it from My courses if you need a longer rewrite.</div>}
+      {admin && <div className="notice" role="note">You are editing another instructor's course. Your changes are recorded in the audit log.</div>}
 
       <section className="panel editor-section" aria-labelledby="e-basics">
         <h2 id="e-basics">Course basics</h2>
         <Field label="Title" value={draft.title} onChange={set('title')} error={errors.title} maxLength={120} placeholder="e.g. Landscape Photography: Capture Beautiful Scenes" />
         <div className="grid-2">
-          <Field as="select" label="Category" value={draft.category} onChange={set('category')} error={errors.category}><option value="">Choose a category</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</Field>
+          <Field as="select" label="Category" value={draft.category} onChange={set('category')} error={errors.category}><option value="">Choose a category</option>{[...new Set([...categories, ...(draft.category ? [draft.category] : [])])].map((c) => <option key={c}>{c}</option>)}</Field>
           <Field as="select" label="Level" value={draft.level} onChange={set('level')}>{LEVELS.map((c) => <option key={c}>{c}</option>)}</Field>
         </div>
         <Field as="textarea" label="Description" value={draft.description} onChange={set('description')} error={errors.description} hint="What will learners be able to do after this course?" maxLength={1000} />
@@ -106,7 +114,7 @@ export default function CourseEditor() {
       </section>
 
       <div className="editor-foot">
-        <p className="muted">{isNew ? 'New courses are saved as drafts. Publish from My courses when you are ready.' : 'Publish or unpublish from My courses.'}</p>
+        <p className="muted">{isNew ? 'New courses are saved as drafts. Submit them for review from My courses when they are ready.' : admin ? 'Approve, reject or take down from the Courses list.' : 'Submit for review or archive from My courses.'}</p>
         <button className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : isNew ? 'Create draft' : 'Save changes'}</button>
       </div>
     </form>
