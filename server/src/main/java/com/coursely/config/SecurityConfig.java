@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Configuration
+@EnableMethodSecurity // enables @PreAuthorize("hasAuthority(...)") on admin endpoints
 public class SecurityConfig {
 
     @Bean
@@ -31,7 +33,8 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
                 .requestMatchers("/api/health", "/api/auth/login", "/api/auth/register").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/courses", "/api/courses/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/courses", "/api/courses/*", "/api/categories").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/instructor/**").hasRole("INSTRUCTOR")
                 .requestMatchers(HttpMethod.GET, "/api/learn/courses/*").authenticated() // learners and instructor preview
                 .requestMatchers("/api/learn/**", "/api/enrollments/**").hasRole("STUDENT")

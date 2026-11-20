@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionTemplate;
 import java.math.BigDecimal;
@@ -25,7 +26,7 @@ public class DataSeeder {
 
     private record C(String title, String cat, String level, int inst, double price, Double was, String badge, double rating, int students, String desc, String img, String topic) {}
 
-    @Bean
+    @Bean @Order(1)
     CommandLineRunner seed(UserRepository users, CourseRepository courses, EnrollmentRepository enrollments, LessonProgressRepository progress,
                            PasswordEncoder enc, TransactionTemplate tx) {
         return args -> tx.executeWithoutResult(s -> {
@@ -37,6 +38,10 @@ public class DataSeeder {
             User jordan = users.save(new User("Jordan Davis", "student@coursely.dev", hash, Role.STUDENT));
             User mia = users.save(new User("Mia Otieno", "mia@example.com", hash, Role.STUDENT));
             User liam = users.save(new User("Liam Kariuki", "liam@example.com", hash, Role.STUDENT));
+            for (User t : List.of(amara, daniel, grace)) t.setApproval(ApprovalStatus.APPROVED); // demo instructors are already vetted
+            users.save(new User("Platform Admin", "admin@coursely.dev", hash, Role.ADMIN));
+            User newcomer = users.save(new User("Nia Kamau", "pending@coursely.dev", hash, Role.INSTRUCTOR)); // awaiting approval: shows the admin queue
+            newcomer.setHeadline("Marketing strategist");
             User[] teachers = {null, amara, daniel, grace};
             String u = "https://images.unsplash.com/photo-%s?auto=format&fit=crop&w=900&q=80";
             List<C> defs = List.of(
@@ -66,6 +71,7 @@ public class DataSeeder {
             draft.setDescription("Shape a brand voice and tell stories that people remember and share."); draft.setPrice(BigDecimal.valueOf(29));
             CourseModule dm = new CourseModule(draft); dm.setTitle("Finding your voice"); dm.setPosition(0);
             Lesson dl = new Lesson(dm); dl.setTitle("What makes a story stick"); dl.setDurationMinutes(12); dm.getLessons().add(dl); draft.getModules().add(dm);
+            draft.setStatus(CourseStatus.PENDING_REVIEW); // waiting in the admin review queue
             courses.save(draft);
 
             enroll(enrollments, progress, jordan, saved.get(6), 20, 6, 6);

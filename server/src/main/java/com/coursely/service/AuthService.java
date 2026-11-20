@@ -3,6 +3,7 @@ package com.coursely.service;
 import com.coursely.dto.Api.*;
 import com.coursely.model.Role;
 import com.coursely.model.User;
+import com.coursely.model.UserStatus;
 import com.coursely.repository.UserRepository;
 import com.coursely.security.JwtService;
 import org.springframework.http.HttpStatus;
@@ -19,13 +20,13 @@ public class AuthService {
 
     public AuthService(UserRepository users, PasswordEncoder encoder, JwtService jwt) { this.users = users; this.encoder = encoder; this.jwt = jwt; }
 
-    public static UserView view(User u) { return new UserView(u.getId(), u.getName(), u.getEmail(), u.getRole().name(), u.getHeadline()); }
+    public static UserView view(User u) { return new UserView(u.getId(), u.getName(), u.getEmail(), u.getRole().name(), u.getHeadline(), u.getStatus().name(), u.getApproval().name(), u.getApprovalNote()); }
 
     @Transactional
     public AuthResponse register(RegisterRequest r) {
         if (users.existsByEmailIgnoreCase(r.email().trim()))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "An account with this email already exists.");
-        // Only STUDENT and INSTRUCTOR can be self-selected.
+        // Only STUDENT and INSTRUCTOR can be self-selected; ADMIN accounts are created by seeding, bootstrap or another admin.
         Role role = "INSTRUCTOR".equalsIgnoreCase(r.role()) ? Role.INSTRUCTOR : Role.STUDENT;
         User u = users.save(new User(r.name().trim(), r.email().trim(), encoder.encode(r.password()), role));
         return new AuthResponse(jwt.issue(u), view(u));
@@ -37,6 +38,8 @@ public class AuthService {
         User u = users.findByEmailIgnoreCase(r.email().trim())
             .filter(x -> encoder.matches(r.password(), x.getPasswordHash()))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "That email and password do not match."));
+        if (u.getStatus() == UserStatus.SUSPENDED) // checked after the password so it cannot be used to probe for accounts
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This account has been suspended. Please contact support.");
         return new AuthResponse(jwt.issue(u), view(u));
     }
 
