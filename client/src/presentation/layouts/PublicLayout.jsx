@@ -2,12 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, Menu, Search, X, ArrowRight } from 'lucide-react';
 import Brand from '../components/Brand';
-import { CATEGORY_META } from '../components/categoryMeta';
-import { CATEGORIES, initials } from '../../domain/course';
+import { metaFor } from '../components/categoryMeta';
+import { useCategories } from '../../application/useCategories';
+import { initials } from '../../domain/course';
 import { useAuth, homeFor } from '../../application/AuthContext';
 import { useDismiss } from '../../application/useDismiss';
 
 function ExploreMenu() {
+  const categories = useCategories();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const loc = useLocation();
@@ -21,8 +23,8 @@ function ExploreMenu() {
       {open && (
         <div className="menu explore-menu">
           <Link to="/courses" className="menu-all">Browse all courses <ArrowRight size={15} aria-hidden /></Link>
-          {CATEGORIES.map((c) => {
-            const { icon: Icon, bg, fg } = CATEGORY_META[c];
+          {categories.map((c) => {
+            const { icon: Icon, bg, fg } = metaFor(c);
             return <Link key={c} to={`/courses?category=${encodeURIComponent(c)}`}><span className="menu-icon" style={{ background: bg, color: fg }}><Icon size={16} aria-hidden /></span>{c}</Link>;
           })}
         </div>

@@ -13,7 +13,7 @@ export function ToastProvider({ children }) {
     setItems((xs) => [...xs.slice(-2), { id: n, message, tone }]);
     setTimeout(() => dismiss(n), 5000);
   }, [dismiss]);
-  const api = useMemo(() => ({ success: (m) => push(m, 'success'), error: (m) => push(m, 'error') }), [push]);
+  const api = useMemo(() => ({ success: (m) => push(m, 'success'), error: (m) => push(m, 'error'), info: (m) => push(m, 'success') }), [push]);
   return (
     <ToastContext.Provider value={api}>
       {children}
