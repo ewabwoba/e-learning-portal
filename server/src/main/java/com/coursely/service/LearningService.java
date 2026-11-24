@@ -44,13 +44,16 @@ public class LearningService {
             .sorted(Comparator.comparing(EnrollmentView::lastActivityAt).reversed()).toList();
     }
 
-    @Transactional
-    public EnrollmentView enroll(User me, Long courseId) {
-        Course c = courses.findById(courseId).filter(x -> x.getStatus() == CourseStatus.PUBLISHED).orElseThrow(LearningService::notFound);
-        Enrollment e = enrollments.findByStudentIdAndCourseId(me.getId(), courseId)
-            .orElseGet(() -> enrollments.save(new Enrollment(users.getReferenceById(me.getId()), c)));
-        return view(e);
+@Transactional
+public EnrollmentView enroll(User me, Long courseId) {
+    Course c = courses.findById(courseId).filter(x -> x.getStatus() == CourseStatus.PUBLISHED).orElseThrow(LearningService::notFound);
+    Optional<Enrollment> existing = enrollments.findByStudentIdAndCourseId(me.getId(), courseId);
+    if (existing.isPresent()) return view(existing.get());
+    if (c.getPrice().signum() > 0) {
+        throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED, "This course must be paid for before you can enrol.");
     }
+    return view(enrollments.save(new Enrollment(users.getReferenceById(me.getId()), c)));
+}
 
     public CourseView learn(User me, Long courseId) {
         Course c = courses.findById(courseId).orElseThrow(LearningService::notFound);
