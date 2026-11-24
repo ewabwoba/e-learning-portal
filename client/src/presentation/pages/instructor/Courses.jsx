@@ -45,7 +45,7 @@ export default function InstructorCourses() {
                   <td data-label="Status"><span className={`pill ${courseStatus(c.status).pill}`}>{courseStatus(c.status).label}</span></td>
                   <td data-label="Students" className="num">{c.students}</td>
                   <td data-label="Price" className="num">{formatPrice(c.price)}</td>
-                  <td data-label="Sales" className="num">{c.revenue ? formatPrice(c.revenue) : "$0"}</td>
+                  <td data-label="Sales" className="num">{formatPrice(c.revenue || 0).replace("Free", "KSh 0")}</td>
                   <td className="actions">
                     <Link to={`/app/teach/courses/${c.id}`} className="btn btn-outline btn-sm"><Pencil size={14} aria-hidden /> Edit</Link>
                     <Link to={`/app/courses/${c.id}`} className="btn btn-ghost btn-sm" aria-label={`Preview ${c.title}`}><Eye size={14} aria-hidden /> Preview</Link>

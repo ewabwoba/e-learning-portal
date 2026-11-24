@@ -14,7 +14,7 @@ export const SORTS = [
   { value: 'price-desc', label: 'Price: high to low' },
 ];
 
-export const formatPrice = (n) => (Number(n) === 0 ? 'Free' : `$${Number(n).toFixed(2)}`);
+export const formatPrice = (n) => (Number(n) === 0 ? 'Free' : `KSh ${Number(n).toLocaleString('en-KE', { maximumFractionDigits: 0 })}`);
 
 export function formatDuration(minutes = 0) {
   const h = Math.floor(minutes / 60);

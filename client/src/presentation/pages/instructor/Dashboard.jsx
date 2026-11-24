@@ -9,7 +9,7 @@ import PageHeader, { StatCard } from '../../components/PageHeader';
 import { EmptyState, ErrorState, Skeleton } from '../../components/States';
 import { initials } from '../../../domain/course';
 
-const money = (n) => `$${Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+const money = (n) => `KSh ${Number(n).toLocaleString('en-KE', { maximumFractionDigits: 0 })}`;
 
 export default function InstructorDashboard() {
   useDocumentTitle('Instructor dashboard');
