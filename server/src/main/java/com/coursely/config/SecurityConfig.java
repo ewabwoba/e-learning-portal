@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/instructor/**").hasRole("INSTRUCTOR")
                 .requestMatchers(HttpMethod.GET, "/api/learn/courses/*").authenticated() // learners and instructor preview
                 .requestMatchers("/api/learn/**", "/api/enrollments/**").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.POST, "/api/payments/mpesa/callback/*").permitAll()
+                .requestMatchers("/api/payments/**").hasRole("STUDENT")
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e
                 .authenticationEntryPoint((req, res, ex) -> write(mapper, res, 401, "Please sign in to continue."))

@@ -25,6 +25,8 @@ public final class Api {
                                 @NotBlank @Size(max = 30) String level, @NotBlank @Size(min = 20, max = 2000) String description,
                                 @NotNull @DecimalMin("0.00") BigDecimal price, @DecimalMin("0.00") BigDecimal originalPrice,
                                 @Size(max = 500) String imageUrl, @Valid List<ModuleRequest> modules) {}
+    public record PayRequest(@NotNull Long courseId, @NotBlank String phone) {}
+    public record PaymentView(Long id, Long courseId, String status, int amountKes, String message, String receipt) {}
 
     // ---- responses ----
     public record UserView(Long id, String name, String email, String role, String headline, String status, String approval, String approvalNote) {}
