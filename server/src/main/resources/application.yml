@@ -17,6 +17,7 @@ spring:
       write-dates-as-timestamps: false
 server:
   port: 8080
+
 coursely:
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
@@ -31,3 +32,12 @@ coursely:
     name: ${COURSELY_ADMIN_NAME:Platform Admin}
   seed:
     enabled: ${COURSELY_SEED:true}   # demo data + demo accounts; set false outside local development
+  mpesa:
+    enabled: ${MPESA_ENABLED:false}
+    base-url: ${MPESA_BASE_URL:https://sandbox.safaricom.co.ke}
+    consumer-key: ${MPESA_CONSUMER_KEY:}
+    consumer-secret: ${MPESA_CONSUMER_SECRET:}
+    shortcode: ${MPESA_SHORTCODE:174379}
+    passkey: ${MPESA_PASSKEY:}
+    callback-url: ${MPESA_CALLBACK_URL:}
+    callback-secret: ${MPESA_CALLBACK_SECRET:}
