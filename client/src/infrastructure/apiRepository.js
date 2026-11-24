@@ -27,6 +27,11 @@ const instructor = {
   stats: () => http('/instructor/stats'),
 };
 
+const payments = {
+  start: (courseId, phone) => http('/payments', { method: 'POST', body: { courseId, phone } }),
+  status: (id) => http(`/payments/${id}`),
+};
+
 const categories = { list: () => http('/categories', { auth: false }) };
 const admin = {
   report: () => http('/admin/report'),
@@ -53,4 +58,4 @@ const admin = {
   cancelEnrollment: (id) => http(`/admin/enrollments/${id}`, { method: 'DELETE' }),
 };
 
-export const apiRepository = { mode: 'api', auth, courses, categories, learning, instructor, admin };
+export const apiRepository = { mode: 'api', auth, courses, categories, learning, payments, instructor, admin };

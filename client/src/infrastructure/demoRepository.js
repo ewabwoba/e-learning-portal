@@ -128,6 +128,7 @@ const learning = {
     const c = d.courses.find((x) => x.id === Number(courseId) && listed(x));
     if (!c) throw new ApiError('We could not find that course.', 404);
     let e = d.enrollments.find((x) => x.userId === u.id && x.courseId === c.id);
+    if (!e && c.price > 0) throw new ApiError('This course must be paid for before you can enrol.', 402);
     if (!e) { e = { id: d.next.enrollment++, userId: u.id, courseId: c.id, enrolledAt: new Date().toISOString(), done: {} }; d.enrollments.push(e); save(); }
     return enrollmentView(e);
   },
@@ -259,6 +260,35 @@ const instructor = {
       averageRating: rated.length ? +(rated.reduce((s, c) => s + c.rating, 0) / rated.length).toFixed(1) : 0,
       byCourse: rows.filter((r) => r.students).sort((a, b) => b.students - a.students).slice(0, 6),
     };
+  },
+};
+
+// Offline stand-in for M-Pesa: the "customer" approves about 4 seconds after the request.
+const PHONE = /^(?:\+?254|0)?[17]\d{8}$/;
+const PAY_MESSAGE = { PENDING: 'Check your phone and enter your M-Pesa PIN.', SUCCESS: 'Payment received. You are enrolled.', FAILED: 'The payment failed.', CANCELLED: 'You cancelled the request.' };
+const paymentView = (p) => ({ id: p.id, courseId: p.courseId, status: p.status, amountKes: p.amountKes, message: PAY_MESSAGE[p.status], receipt: p.receipt || null });
+const payments = {
+  async start(courseId, phone) {
+    await wait(500);
+    const u = requireRole('STUDENT'); const d = load();
+    const c = d.courses.find((x) => x.id === Number(courseId) && listed(x)) || fail('We could not find that course.', 404);
+    if (d.enrollments.some((x) => x.userId === u.id && x.courseId === c.id)) fail('You are already enrolled in this course.', 409);
+    if (!PHONE.test(String(phone).replace(/[\s-]/g, ''))) fail('Enter a valid Safaricom number, e.g. 0712 345 678.');
+    d.payments = d.payments || []; d.next.payment = d.next.payment || 1;
+    const p = { id: d.next.payment++, userId: u.id, courseId: c.id, amountKes: Math.ceil(c.price), status: 'PENDING', createdAt: Date.now() };
+    d.payments.push(p); save();
+    return paymentView(p);
+  },
+  async status(id) {
+    await wait(150);
+    const u = requireRole('STUDENT'); const d = load();
+    const p = (d.payments || []).find((x) => x.id === Number(id) && x.userId === u.id) || fail('We could not find that payment.', 404);
+    if (p.status === 'PENDING' && Date.now() - p.createdAt > 4000) {
+      p.status = 'SUCCESS'; p.receipt = `DEMO${p.id}`;
+      if (!d.enrollments.some((x) => x.userId === u.id && x.courseId === p.courseId)) d.enrollments.push({ id: d.next.enrollment++, userId: u.id, courseId: p.courseId, enrolledAt: new Date().toISOString(), done: {} });
+      save();
+    }
+    return paymentView(p);
   },
 };
 
@@ -437,4 +467,4 @@ const admin = {
   },
 };
 
-export const demoRepository = { mode: 'demo', auth, courses, categories, learning, instructor, admin };
+export const demoRepository = { mode: 'demo', auth, courses, categories, learning, payments, instructor, admin };

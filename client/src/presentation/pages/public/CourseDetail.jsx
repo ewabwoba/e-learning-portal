@@ -8,6 +8,7 @@ import { useAuth } from '../../../application/AuthContext';
 import { useToast } from '../../../application/ToastContext';
 import { useDocumentTitle } from '../../../application/useDocumentTitle';
 import CourseImage from '../../components/CourseImage';
+import PayDialog from '../../components/PayDialog';
 import Stars from '../../components/Stars';
 import { ErrorState, Skeleton } from '../../components/States';
 import { initials, formatDuration, formatPrice, discountPercent, curriculumStats, formatCount } from '../../../domain/course';
@@ -29,6 +30,7 @@ export default function CourseDetail({ inApp = false }) {
   const toast = useToast();
   const { user, isAuthenticated } = useAuth();
   const [busy, setBusy] = useState(false);
+  const [paying, setPaying] = useState(false);
   const course = useAsync(() => repo.courses.get(id), [repo, id]);
   const mine = useAsync(() => (user?.role === 'STUDENT' ? repo.learning.enrollments() : Promise.resolve([])), [repo, user?.id]);
   useDocumentTitle(course.data?.title);
@@ -45,6 +47,7 @@ export default function CourseDetail({ inApp = false }) {
 
   const enroll = async () => {
     if (!isAuthenticated) { nav(`/login?next=${encodeURIComponent(loc.pathname)}&intent=enroll`); return; }
+    if (c.price > 0) { setPaying(true); return; }
     setBusy(true);
     try { await repo.learning.enroll(c.id); toast.success('You are enrolled. Happy learning!'); nav(learnPath); }
     catch (e) { toast.error(e.message); setBusy(false); }
@@ -57,12 +60,13 @@ export default function CourseDetail({ inApp = false }) {
   else if (user?.role === 'INSTRUCTOR') cta = <p className="buy-note">You are signed in as an instructor. Use a student account to enrol in courses.</p>;
   else cta = (
     <button type="button" className="btn btn-primary btn-lg btn-block" onClick={enroll} disabled={busy}>
-      {busy ? <><span className="spinner" aria-hidden /> Enrolling…</> : isAuthenticated ? (c.price === 0 ? 'Enrol for free' : 'Enrol now') : 'Sign in to enrol'}
+      {busy ? <><span className="spinner" aria-hidden /> Enrolling…</> : isAuthenticated ? (c.price === 0 ? 'Enrol for free' : 'Pay with M-Pesa') : 'Sign in to enrol'}
     </button>
   );
 
   return (
     <div className="detail">
+      {paying && <PayDialog course={c} onClose={() => setPaying(false)} onPaid={() => { toast.success('Payment received. Happy learning!'); nav(learnPath); }} />}
       <div className="detail-hero">
         <div className="container">
           <nav className="crumbs" aria-label="Breadcrumb">
@@ -120,7 +124,7 @@ export default function CourseDetail({ inApp = false }) {
           <div className="buy-body">
             <div className="buy-price"><strong>{formatPrice(c.price)}</strong>{off > 0 && <><s>{formatPrice(c.originalPrice)}</s><span className="pill pill-green">{off}% off</span></>}</div>
             {cta}
-            {!enrolled && !isOwner && user?.role !== 'ADMIN' && c.price > 0 && <p className="buy-note">Payments are not connected in this starter, so enrolment is instant.</p>}
+            {!enrolled && !isOwner && user?.role !== 'ADMIN' && c.price > 0 && <p className="buy-note">Pay securely with M-Pesa. You are enrolled as soon as the payment is confirmed.</p>}
             <h3>This course includes</h3>
             <ul className="includes">
               <li><PlayCircle size={17} aria-hidden /> {formatDuration(stats.minutes)} of lessons</li>
